@@ -29,3 +29,10 @@ class UserModel(db.Model):
     @classmethod
     def find_all(cls):
         return cls.query.all()
+
+    def json(self):
+        return {'id': self.id, 'name': self.username}
+
+    def delete_from_db(self):
+        db.session.delete(self)
+        db.session.commit()
