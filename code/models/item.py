@@ -30,4 +30,8 @@ class ItemModel(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+    @classmethod
+    def find_all(cls):
+        return cls.query.all()
+
 
