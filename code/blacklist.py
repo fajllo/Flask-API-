@@ -1,2 +1,2 @@
-# set with blacklited user id 
-BLACKLIST = {2, 3}
+# set with blacklited user id
+BLACKLIST = set()

@@ -1,9 +1,9 @@
-from flask_jwt_extended import create_access_token,create_refresh_token, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, get_jti
 from flask_restful import Resource, reqparse
 from models.user import UserModel
 from flask_jwt_extended import jwt_required
 import hmac
-
+from blacklist import BLACKLIST
 
 class UserRegister(Resource):
     parser = reqparse.RequestParser()
@@ -29,7 +29,7 @@ class UserRegister(Resource):
 
 class UserDetails(Resource):
 
-    jwt_required()
+    @jwt_required()
     def get(self, name):
 
         user = UserModel.find_by_username(name)
@@ -73,6 +73,13 @@ class UserAuth(Resource):
 
         return {'message': 'invalid credentials'},401
 
+
+class UserLogout(Resource):
+    @jwt_required()
+    def post(self):
+        jti = get_jti(encoded_token=True)['jit']
+        BLACKLIST.add(jti)
+        return {"message": "Succesfully logged out."}, 200
 
 
 class TokenRefresh(Resource):

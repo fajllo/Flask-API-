@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
 
-from resources.user import UserRegister, UserDetails, UserAuth, TokenRefresh
+from resources.user import UserRegister, UserDetails, UserAuth, TokenRefresh, UserLogout
 from resources.item import Item, ItemList
 from database import db
 from resources.store import Store, StoreList
@@ -28,12 +28,12 @@ def create_tables():
 
 jwt = JWTManager(app)
 
-
+#  user black listing
 @jwt.token_in_blocklist_loader
 def check_if_token_in_blacklist(jwt_headers, jwt_payload):
-    app.logger.info("user blacklisted ")
+    app.logger.info("usr blacklisted ")
     app.logger.info(jwt_payload)
-    id_iam_looking_for = jwt_payload['sub']
+    id_iam_looking_for = jwt_payload['jti']
     return id_iam_looking_for in BLACKLIST
 
 
@@ -51,6 +51,14 @@ def expired_token_callback():
         'error': 'token expired'
     }), 401
 
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_payload):
+    return jsonify({
+        'description': "You do not have privileges to view",
+        'error': 'authorization required'
+    }), 401
+
+# user logout
 
 # Custom error message. use belows
 # @jwt.invalid_token_loader
@@ -70,6 +78,7 @@ api.add_resource(StoreList, '/stores')
 api.add_resource(UserDetails, '/user/<string:name>')
 api.add_resource(UserRegister, '/singup')
 api.add_resource(UserAuth, '/auth')
+api.add_resource(UserLogout, '/logout')
 api.add_resource(TokenRefresh, '/refresh')
 
 if __name__ == '__main__':
