@@ -1,17 +1,17 @@
 from flask_restful import Resource, reqparse
-from flask_jwt import jwt_required
+from flask_jwt_extended import jwt_required
 
 from models.store import StoreModel
 
 
 class Store(Resource):
 
-    # parser = reqparse.RequestParser()
-    # parser.add_argument("name",
-    #                     required=False,
-    #                     type=float,
-    #                     help="This field cannot be left blank!"
-    #                     )
+    parser = reqparse.RequestParser()
+    parser.add_argument("name",
+                        required=False,
+                        type=float,
+                        help="This field cannot be left blank!"
+                        )
 
 
     @jwt_required()
@@ -51,4 +51,4 @@ class Store(Resource):
 class StoreList(Resource):
 
     def get(self):
-        return {"stores": [store.json() for store in StoreModel.finde_all()]}
+        return {"stores": [store.json() for store in StoreModel.find_all()]}
