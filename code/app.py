@@ -6,12 +6,16 @@ from resources.user import UserRegister, UserDetails, UserAuth, TokenRefresh
 from resources.item import Item, ItemList
 from database import db
 from resources.store import Store, StoreList
+from blacklist import BLACKLIST
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PROPAGATE_EXCEPTIONS'] = True
 app.config['JWT_SECRET_KEY'] = "JWT_secret_key"
+app.config['JWT_BLACKLIST_ENABLE'] = True
+app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']
+
 app.secret_key = 'secret key'
 
 api = Api(app)
@@ -23,6 +27,14 @@ def create_tables():
 
 
 jwt = JWTManager(app)
+
+
+@jwt.token_in_blocklist_loader
+def check_if_token_in_blacklist(jwt_headers, jwt_payload):
+    app.logger.info("user blacklisted ")
+    app.logger.info(jwt_payload)
+    id_iam_looking_for = jwt_payload['sub']
+    return id_iam_looking_for in BLACKLIST
 
 
 @jwt.additional_claims_loader
@@ -38,7 +50,9 @@ def expired_token_callback():
         'description': 'The token has expired',
         'error': 'token expired'
     }), 401
-#Custom error message. use belows
+
+
+# Custom error message. use belows
 # @jwt.invalid_token_loader
 #
 # @jwt.needs_fresh_token_loader
