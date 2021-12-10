@@ -1,7 +1,6 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_restful import Api
 from flask_jwt_extended import JWTManager
-
 
 from resources.user import UserRegister, UserDetails, UserAuth, TokenRefresh
 from resources.item import Item, ItemList
@@ -17,6 +16,7 @@ app.secret_key = 'secret key'
 
 api = Api(app)
 
+
 @app.before_first_request
 def create_tables():
     db.create_all()
@@ -24,12 +24,28 @@ def create_tables():
 
 jwt = JWTManager(app)
 
+
 @jwt.additional_claims_loader
 def add_claims_to_jwt(identity):
     if identity == 1:
         return {'is_admin': True}
     return {'is_admin': False}
 
+
+@jwt.expired_token_loader
+def expired_token_callback():
+    return jsonify({
+        'description': 'The token has expired',
+        'error': 'token expired'
+    }), 401
+#Custom error message. use belows
+# @jwt.invalid_token_loader
+#
+# @jwt.needs_fresh_token_loader
+#
+# @jwt.unauthorized_loader
+#
+# @jwt.revoked_token_loader
 
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemList, '/items')
@@ -40,8 +56,7 @@ api.add_resource(StoreList, '/stores')
 api.add_resource(UserDetails, '/user/<string:name>')
 api.add_resource(UserRegister, '/singup')
 api.add_resource(UserAuth, '/auth')
-api.add_resource(TokenRefresh,'/refresh')
-
+api.add_resource(TokenRefresh, '/refresh')
 
 if __name__ == '__main__':
     db.init_app(app)
